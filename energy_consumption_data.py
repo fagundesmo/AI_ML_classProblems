@@ -90,6 +90,32 @@ def plot_owid_top_consumers(df, year=2022, top_n=10):
     print("Plot saved as 'top_energy_consumers.png'")
 
 
+def plot_us_energy_per_capita(df):
+    """
+    Plot energy consumption per capita over time for the United States.
+
+    Args:
+        df: OWID energy DataFrame.
+    """
+    us = df[df["country"] == "United States"].dropna(
+        subset=["energy_per_capita"]
+    ).sort_values("year")
+
+    plt.figure(figsize=(12, 6))
+    plt.plot(us["year"], us["energy_per_capita"], color="steelblue",
+             linewidth=2, marker="o", markersize=3)
+    plt.xlabel("Year")
+    plt.ylabel("Energy Consumption Per Capita (kWh)")
+    plt.title("United States — Energy Consumption Per Capita Over Time")
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig("us_energy_per_capita.png", dpi=150)
+    plt.show()
+    print("Plot saved as 'us_energy_per_capita.png'")
+    print(f"\nUS Per Capita Energy (recent years):")
+    print(us[["year", "energy_per_capita"]].tail(10).to_string(index=False))
+
+
 # =============================================================================
 # SOURCE 2: World Bank Open Data API (No API key required)
 # =============================================================================
