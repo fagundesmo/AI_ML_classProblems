@@ -69,15 +69,12 @@ def plot_owid_top_consumers(df, year=2022, top_n=10):
         year: Year to filter on.
         top_n: Number of top countries to display.
     """
-    # Filter out aggregates (e.g., "World", "Asia", "Europe")
-    aggregates = [
-        "World", "Asia", "Europe", "North America", "South America",
-        "Africa", "Oceania", "European Union (27)", "High-income countries",
-        "Low-income countries", "Lower-middle-income countries",
-        "Upper-middle-income countries",
-    ]
+    # Filter to only actual countries by requiring a valid ISO code
+    # This removes all aggregates like "World", "OECD (EI)", "Non-OPEC (EIA)", etc.
     filtered = df[
-        (df["year"] == year) & (~df["country"].isin(aggregates))
+        (df["year"] == year)
+        & (df["iso_code"].notna())
+        & (df["iso_code"].str.len() == 3)
     ].dropna(subset=["primary_energy_consumption"])
 
     top = filtered.nlargest(top_n, "primary_energy_consumption")
@@ -91,6 +88,32 @@ def plot_owid_top_consumers(df, year=2022, top_n=10):
     plt.savefig("top_energy_consumers.png", dpi=150)
     plt.show()
     print("Plot saved as 'top_energy_consumers.png'")
+
+
+def plot_us_energy_per_capita(df):
+    """
+    Plot energy consumption per capita over time for the United States.
+
+    Args:
+        df: OWID energy DataFrame.
+    """
+    us = df[df["country"] == "United States"].dropna(
+        subset=["energy_per_capita"]
+    ).sort_values("year")
+
+    plt.figure(figsize=(12, 6))
+    plt.plot(us["year"], us["energy_per_capita"], color="steelblue",
+             linewidth=2, marker="o", markersize=3)
+    plt.xlabel("Year")
+    plt.ylabel("Energy Consumption Per Capita (kWh)")
+    plt.title("United States — Energy Consumption Per Capita Over Time")
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig("us_energy_per_capita.png", dpi=150)
+    plt.show()
+    print("Plot saved as 'us_energy_per_capita.png'")
+    print(f"\nUS Per Capita Energy (recent years):")
+    print(us[["year", "energy_per_capita"]].tail(10).to_string(index=False))
 
 
 # =============================================================================
@@ -247,23 +270,29 @@ def main():
     # --- Example 1: Our World in Data ---
     print("\n[1/2] Our World in Data - Energy Dataset")
     print("-" * 40)
-    owid_df = load_owid_energy_data()
-    explore_owid_data(owid_df)
-    plot_owid_top_consumers(owid_df)
+    try:
+        owid_df = load_owid_energy_data()
+        explore_owid_data(owid_df)
+        plot_owid_top_consumers(owid_df)
+    except Exception as e:
+        print(f"[OWID] Could not load data: {e}")
 
     # --- Example 2: World Bank ---
     print("\n[2/2] World Bank - Energy Use Per Capita")
     print("-" * 40)
-    wb_df = load_world_bank_energy_data(
-        indicator="EG.USE.PCAP.KG.OE",
-        start_year=2000,
-        end_year=2022,
-    )
-    if not wb_df.empty:
-        plot_world_bank_comparison(
-            wb_df,
-            indicator_name="Energy Use (kg of oil equiv. per capita)",
+    try:
+        wb_df = load_world_bank_energy_data(
+            indicator="EG.USE.PCAP.KG.OE",
+            start_year=2000,
+            end_year=2022,
         )
+        if not wb_df.empty:
+            plot_world_bank_comparison(
+                wb_df,
+                indicator_name="Energy Use (kg of oil equiv. per capita)",
+            )
+    except Exception as e:
+        print(f"[World Bank] Could not load data: {e}")
 
     # --- Example 3: EIA (uncomment and add your API key) ---
     # print("\n[3/3] U.S. EIA - Total Energy")
