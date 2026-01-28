@@ -12,12 +12,13 @@ Usage (command line):
 """
 
 import os
+import re
 import sys
 
 from .ocr import extract_text_from_image
 from .extractor import extract_fields
 from .categorizer import categorize
-from .ledger import add_entry, get_week_entries, clear_ledger
+from .ledger import add_entry, get_entries, get_week_entries, clear_ledger
 from .summarizer import generate_weekly_summary, _format_brl
 
 
@@ -65,10 +66,34 @@ def process_text_message(user_message: str) -> str:
     """
     msg_lower = user_message.strip().lower()
 
-    # Command: weekly summary
+    # Command: weekly summary (current or past weeks)
     if msg_lower in ("resumo", "resumo semanal", "summary", "weekly"):
         entries = get_week_entries()
         return generate_weekly_summary(entries)
+
+    # Past week: "resumo semana passada" / "resumo last week"
+    if msg_lower in ("resumo semana passada", "semana passada", "last week"):
+        from datetime import date, timedelta
+        last_week = date.today() - timedelta(weeks=1)
+        entries = get_week_entries(reference_date=last_week.isoformat())
+        return generate_weekly_summary(entries, label="Semana Passada")
+
+    # N weeks ago: "resumo 2 semanas" / "resumo 3 semanas atras"
+    weeks_match = re.match(
+        r"resumo\s+(\d+)\s+semanas?\s*(?:atr[aá]s)?",
+        msg_lower,
+    )
+    if weeks_match:
+        from datetime import date, timedelta
+        n = int(weeks_match.group(1))
+        ref = date.today() - timedelta(weeks=n)
+        entries = get_week_entries(reference_date=ref.isoformat())
+        return generate_weekly_summary(entries, label=f"{n} Semana(s) Atrás")
+
+    # All entries: "resumo tudo" / "resumo geral" / "resumo total"
+    if msg_lower in ("resumo tudo", "resumo geral", "resumo total", "all"):
+        entries = get_entries()
+        return generate_weekly_summary(entries, label="Geral (Todas as Transações)")
 
     # Command: clear/reset
     if msg_lower in ("limpar", "reset", "clear"):
@@ -160,7 +185,10 @@ def _help_message() -> str:
         "  • \"despesa 80 fornecedor\" → registra despesa\n"
         "  • \"gasto 50 transporte\" → registra despesa\n\n"
         "📊 *Comandos:*\n"
-        "  • \"resumo\" → resumo semanal\n"
+        "  • \"resumo\" → resumo da semana atual\n"
+        "  • \"resumo semana passada\" → semana anterior\n"
+        "  • \"resumo 2 semanas\" → 2 semanas atrás\n"
+        "  • \"resumo tudo\" → todas as transações\n"
         "  • \"limpar\" → apaga todas as transações\n"
         "  • \"ajuda\" → esta mensagem"
     )
