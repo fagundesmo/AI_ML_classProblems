@@ -34,7 +34,11 @@ import os
 import json
 import tempfile
 import requests
+from dotenv import load_dotenv
 from flask import Flask, request, jsonify
+
+# Load .env file from the project root (two levels up from this file)
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 from .whatsapp_sim import process_receipt, process_text_message
 

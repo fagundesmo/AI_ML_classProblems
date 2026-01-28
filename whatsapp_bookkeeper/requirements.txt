@@ -6,6 +6,7 @@ Pillow>=10.0.0          # Image handling + sample receipt generation
 # WhatsApp webhook (required for real WhatsApp integration):
 # flask>=3.0.0          # Web server for webhook
 # requests>=2.31.0      # HTTP client for WhatsApp Cloud API
+# python-dotenv>=1.0.0  # Load .env file for credentials
 # ngrok                 # (install separately: pip install ngrok, or download from ngrok.com)
 
 # OCR (optional — demo uses simulated OCR if not installed):
