@@ -1,0 +1,11 @@
+# WhatsApp Bookkeeper — Dependencies
+#
+# Core (required for demo):
+Pillow>=10.0.0          # Image handling + sample receipt generation
+
+# OCR (optional — demo uses simulated OCR if not installed):
+# pytesseract>=0.3.10   # Python wrapper for Tesseract OCR
+# (also requires system-level Tesseract: sudo apt install tesseract-ocr)
+
+# LLM (optional — demo uses template-based fallback if not installed):
+# openai>=1.0.0         # OpenAI API client for LLM extraction/summarization
