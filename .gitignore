@@ -1,3 +1,4 @@
 __pycache__/
 *.pyc
 credentials.json
+whatsapp_bookkeeper/ledger.json
