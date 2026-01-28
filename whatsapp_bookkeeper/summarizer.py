@@ -18,14 +18,16 @@ except ImportError:
     OPENAI_AVAILABLE = False
 
 
-def generate_weekly_summary(entries: list) -> str:
+def generate_weekly_summary(entries: list, label: str = "Semanal") -> str:
     """
-    Generate a WhatsApp-ready weekly summary message.
+    Generate a WhatsApp-ready summary message.
 
     Parameters
     ----------
     entries : list
-        Ledger entries for the week.
+        Ledger entries for the period.
+    label : str
+        Header label (e.g. "Semanal", "Semana Passada", "Geral").
 
     Returns
     -------
@@ -34,17 +36,17 @@ def generate_weekly_summary(entries: list) -> str:
     """
     if not entries:
         return (
-            "📊 *Resumo Semanal*\n\n"
-            "Nenhuma transação registrada esta semana.\n"
+            f"📊 *Resumo {label}*\n\n"
+            "Nenhuma transação registrada neste período.\n"
             "Envie fotos de recibos ou mensagens para começar!"
         )
 
     stats = summary_stats(entries)
 
     if config.OPENAI_API_KEY and OPENAI_AVAILABLE:
-        return _summarize_with_llm(entries, stats)
+        return _summarize_with_llm(entries, stats, label)
 
-    return _summarize_with_template(stats)
+    return _summarize_with_template(stats, label)
 
 
 # ---------------------------------------------------------------------------
@@ -56,7 +58,7 @@ def _format_brl(value: float) -> str:
     return f"R${value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
-def _summarize_with_template(stats: dict) -> str:
+def _summarize_with_template(stats: dict, label: str = "Semanal") -> str:
     """Build a summary using string templates."""
     sales = _format_brl(stats["total_sales"])
     expenses = _format_brl(stats["total_expenses"])
@@ -71,7 +73,7 @@ def _summarize_with_template(stats: dict) -> str:
         status = "➖ Empate"
 
     lines = [
-        "📊 *Resumo Semanal*\n",
+        f"📊 *Resumo {label}*\n",
         f"💰 Vendas: {sales} ({stats['num_sales']} transação(ões))",
         f"💸 Despesas: {expenses} ({stats['num_expenses']} transação(ões))",
         f"{status}: {profit}\n",
@@ -155,7 +157,7 @@ Here is the data:
 """
 
 
-def _summarize_with_llm(entries: list, stats: dict) -> str:
+def _summarize_with_llm(entries: list, stats: dict, label: str = "Semanal") -> str:
     """Use OpenAI to generate a natural-language summary."""
     data_payload = {
         "stats": stats,
