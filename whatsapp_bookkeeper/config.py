@@ -7,7 +7,7 @@ to regex-based extraction (no LLM required for the demo).
 
 import os
 
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "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")
 OPENAI_MODEL = "gpt-4o-mini"
 
 # Ledger stored as a JSON file
