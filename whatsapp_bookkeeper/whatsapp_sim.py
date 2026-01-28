@@ -202,6 +202,13 @@ def _run_interactive():
             image_path = parts[0].strip()
             msg = parts[1].strip() if len(parts) > 1 else ""
 
+            # Resolve bare filenames from the sample_receipts folder
+            if not os.path.isfile(image_path):
+                sample_dir = os.path.join(os.path.dirname(__file__), "sample_receipts")
+                candidate = os.path.join(sample_dir, os.path.basename(image_path))
+                if os.path.isfile(candidate):
+                    image_path = candidate
+
             print(f"📷 [Processando imagem: {os.path.basename(image_path)}...]")
             reply = process_receipt(image_path, msg)
         else:
